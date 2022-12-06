@@ -1,0 +1,78 @@
+<!--To Do List App-->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>To-Do List</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+	<style>
+		.list-group-item:nth-child(odd){
+			background-color: #f3f3f3;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1 class="text-center">To-Do List</h1>
+		<div class="row">
+			<div class="col-md-8 offset-md-2">
+				<div class="card">
+					<div class="card-header">
+						<div class="row">
+							<div class="col-md- 10">
+								<input type="text" class="form-control" id="task-name">
+							</div>
+							<div class="col-md-2">
+								<button class="btn btn-primary btn-block" id="add-task">Add Task</button>
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<ul class="list-group" id="task-list">
+							
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		let taskList = [];
+
+		// Check for existing tasks in local storage
+		if(localStorage.getItem('tasks')){
+			taskList = JSON.parse(localStorage.getItem('tasks'));
+			loadTasks(taskList);
+		}
+		
+		// Load tasks
+		function loadTasks(taskList){
+			let taskListHtml = '';
+			for(let i = 0; i < taskList.length; i++){
+				taskListHtml += `<li class="list-group-item">${taskList[i]} <button class="btn btn-danger btn-sm float-right" onclick="deleteTask('${taskList[i]}')">X</button></li>`;
+			}
+			document.getElementById('task-list').innerHTML = taskListHtml;
+		}
+
+		// Add Task
+		document.getElementById('add-task').addEventListener('click', function(){
+			let taskName = document.getElementById('task-name').value;
+			if(taskName){
+				taskList.push(taskName);
+				loadTasks(taskList);
+				localStorage.setItem('tasks', JSON.stringify(taskList));
+				document.getElementById('task-name').value = '';
+			}
+		});
+
+		// Delete Task
+		function deleteTask(taskName){
+			let newTaskList = taskList.filter(function(task){
+				return task != taskName;
+			});
+			taskList = newTaskList;
+			localStorage.setItem('tasks', JSON.stringify(taskList));
+			loadTasks(taskList);
+		}
+	</script>
+</body>
+</html>
