@@ -3,6 +3,9 @@
 <head>
 	<title>To-Do List</title>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
 	<style>
 		.list-group-item:nth-child(odd){
 			background-color: #f3f3f3;
@@ -11,6 +14,9 @@
 			.row {
 				flex-direction: column;
 			}
+		}
+		.ui-sortable-helper {
+    	cursor: move;
 		}
 	</style>
 </head>
@@ -39,57 +45,103 @@
 			</div>
 		</div>
 	</div>
+	<div id="editModal" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Edit Task</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<input type="text" class="form-control" id="edit-task-name">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" id="save-task">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script type="text/javascript">
 		let taskList = [];
+let currentTaskName = '';
 
-		// Check for existing tasks in local storage
-		if(localStorage.getItem('tasks')){
-			taskList = JSON.parse(localStorage.getItem('tasks'));
+// Check for existing tasks in local storage
+if(localStorage.getItem('tasks')){
+	taskList = JSON.parse(localStorage.getItem('tasks'));
+	loadTasks(taskList);
+}
+
+// Load tasks
+function loadTasks(taskList){
+	let taskListHtml = '';
+	for(let i = 0; i < taskList.length; i++){
+		taskListHtml += `<li class="list-group-item">${taskList[i]} 
+		<button class="btn btn-primary btn-sm float-right" onclick="editTask('${taskList[i]}')">Edit</button> 
+		<button class="btn btn-danger btn-sm float-right" onclick="deleteTask('${taskList[i]}')">X</button></li>`;
+	}
+	document.getElementById('task-list').innerHTML = taskListHtml;
+}
+
+
+
+// Add Task
+document.getElementById('add-task').addEventListener('click', function(){
+	let taskName = document.getElementById('task-name').value;
+	if(taskName){
+		taskList.push(taskName);
+		loadTasks(taskList);
+		localStorage.setItem('tasks', JSON.stringify(taskList));
+		document.getElementById('task-name').value = '';
+	}
+});
+
+// Add Task on Enter
+document.getElementById('task-name').addEventListener('keyup', function(event){
+	if(event.keyCode == 13){
+		let taskName = document.getElementById('task-name').value;
+		if(taskName){
+			taskList.push(taskName);
 			loadTasks(taskList);
-		}
-		
-		// Load tasks
-		function loadTasks(taskList){
-			let taskListHtml = '';
-			for(let i = 0; i < taskList.length; i++){
-				taskListHtml += `<li class="list-group-item">${taskList[i]} <button class="btn btn-danger btn-sm float-right" onclick="deleteTask('${taskList[i]}')">X</button></li>`;
-			}
-			document.getElementById('task-list').innerHTML = taskListHtml;
-		}
-
-		// Add Task
-		document.getElementById('add-task').addEventListener('click', function(){
-			let taskName = document.getElementById('task-name').value;
-			if(taskName){
-				taskList.push(taskName);
-				loadTasks(taskList);
-				localStorage.setItem('tasks', JSON.stringify(taskList));
-				document.getElementById('task-name').value = '';
-			}
-		});
-
-		// Add Task on Enter
-		document.getElementById('task-name').addEventListener('keyup', function(event){
-			if(event.keyCode == 13){
-				let taskName = document.getElementById('task-name').value;
-				if(taskName){
-					taskList.push(taskName);
-					loadTasks(taskList);
-					localStorage.setItem('tasks', JSON.stringify(taskList));
-					document.getElementById('task-name').value = '';
-				}
-			}
-		});
-
-		// Delete Task
-		function deleteTask(taskName){
-			let newTaskList = taskList.filter(function(task){
-				return task != taskName;
-			});
-			taskList = newTaskList;
 			localStorage.setItem('tasks', JSON.stringify(taskList));
-			loadTasks(taskList);
+			document.getElementById('task-name').value = '';
 		}
+	}
+});
+
+// Delete Task
+function deleteTask(taskName){
+	let newTaskList = taskList.filter(function(task){
+		return task != taskName;
+	});
+	taskList = newTaskList;
+	localStorage.setItem('tasks', JSON.stringify(taskList));
+	loadTasks(taskList);
+}
+
+// Edit Task
+function editTask(taskName){
+	document.getElementById('edit-task-name').value = taskName;
+	currentTaskName = taskName;
+	$('#editModal').modal('show');
+}
+
+// Update Task
+document.getElementById('save-task').addEventListener('click', function(){
+	let newTaskName = document.getElementById('edit-task-name').value;
+	let index = taskList.indexOf(currentTaskName);
+	if(index > -1){
+		taskList[index] = newTaskName;
+		localStorage.setItem('tasks', JSON.stringify(taskList));
+		loadTasks(taskList);
+		$('#editModal').modal('hide');
+	}
+});
+
+
+
 	</script>
 </body>
 </html>
